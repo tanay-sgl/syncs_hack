@@ -167,6 +167,11 @@ def submit_signal(
     group = _get_group_or_404(db, group_id)
     _ensure_group_member(group, current_user.id)
 
+    if data.rated_id == current_user.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot rate yourself")
+    if not any(m.user_id == data.rated_id for m in group.members):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Rated user is not in this group")
+
     signal = CollaborationSignal(
         group_id=group_id,
         rater_id=current_user.id,
@@ -180,6 +185,10 @@ def submit_signal(
     db.add(signal)
     db.commit()
     db.refresh(signal)
+
+    from app.services.reputation import recalculate_reputation
+
+    recalculate_reputation(db, data.rated_id)
     return signal
 
 

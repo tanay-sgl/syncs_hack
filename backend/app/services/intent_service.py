@@ -82,6 +82,9 @@ def build_user_public(user: User) -> dict[str, Any]:
         "commitment_level": user.commitment_level,
         "goals": user.goals,
         "availability": user.availability,
+        "reputation_score": user.reputation_score if user.reputation_score is not None else 3.0,
+        "reputation_signal_count": getattr(user, "reputation_signal_count", 0) or 0,
+        "reputation_trusted": bool(getattr(user, "reputation_trusted", False)),
         "skills": skills,
     }
 
@@ -135,7 +138,12 @@ def serialize_intent(intent: Intent) -> dict[str, Any]:
         "creator": {
             "id": intent.creator.id,
             "name": intent.creator.name,
+            "username": intent.creator.username,
             "university": intent.creator.university,
+            "reputation_score": (
+                intent.creator.reputation_score if intent.creator.reputation_score is not None else 3.0
+            ),
+            "reputation_trusted": bool(getattr(intent.creator, "reputation_trusted", False)),
         },
         "interest_count": len(intent.interests),
     }
@@ -228,8 +236,10 @@ def find_matches(
     required_skills: list[str],
     group_size_needed: int,
     exclude_user_ids: list[int],
+    requester_id: int | None = None,
 ) -> MatchingResponse:
     """Simple skill-based matching placeholder for AI/optimization team."""
+    from app.services.reputation import pair_compatibility
 
     query = (
         db.query(User)
@@ -240,7 +250,6 @@ def find_matches(
         query = query.filter(User.id.notin_(exclude_user_ids))
 
     candidates: list[MatchedUser] = []
-    required_lower = [s.lower() for s in required_skills]
 
     for user in query.all():
         user_skill_names = [us.skill.name.lower() for us in user.skills]
@@ -250,6 +259,9 @@ def find_matches(
 
         score = 0.5
         reasons: list[str] = []
+        prior_compatibility = None
+        worked_well_before = False
+
         if matched:
             score += 0.3 * (len(matched) / len(required_skills))
             reasons.append(f"Has skills: {', '.join(matched)}")
@@ -260,17 +272,56 @@ def find_matches(
             score += 0.1
             reasons.append(f"Commitment: {user.commitment_level.value}")
 
+        reputation = user.reputation_score if user.reputation_score is not None else 3.0
+        trusted = bool(getattr(user, "reputation_trusted", False))
+        if trusted and reputation >= 4.0:
+            score += 0.08
+            reasons.append(f"Trusted high reputation ({reputation})")
+        elif trusted and reputation < 2.0:
+            score -= 0.08
+            reasons.append(f"Trusted low reputation ({reputation})")
+        elif not trusted and reputation >= 4.0:
+            score += 0.02
+            reasons.append(f"Untrusted high reputation ({reputation}) — limited weight")
+        elif not trusted and reputation < 2.0:
+            score -= 0.02
+            reasons.append(f"Untrusted low reputation ({reputation}) — limited weight")
+
+        if requester_id is not None:
+            edge = pair_compatibility(db, requester_id, user.id)
+            if edge:
+                prior_compatibility = edge["compatibility_score"]
+                worked_well_before = bool(edge["works_well_together"])
+                if worked_well_before:
+                    score += 0.12
+                    reasons.append(
+                        f"Worked well together before (compatibility {prior_compatibility})"
+                    )
+                elif prior_compatibility is not None and prior_compatibility >= 3.5:
+                    score += 0.06
+                    reasons.append(f"Prior positive collaboration ({prior_compatibility})")
+                elif prior_compatibility is not None and prior_compatibility < 2.5:
+                    score -= 0.1
+                    reasons.append(f"Prior weak collaboration ({prior_compatibility})")
+
         candidates.append(
             MatchedUser(
                 user_id=user.id,
                 name=user.name,
-                match_score=round(min(score, 1.0), 2),
+                match_score=round(min(max(score, 0.0), 1.0), 2),
                 matched_skills=matched,
                 reasons=reasons or ["General compatibility"],
+                reputation_score=reputation,
+                reputation_trusted=trusted,
+                prior_compatibility=prior_compatibility,
+                worked_well_before=worked_well_before,
             )
         )
 
-    candidates.sort(key=lambda c: c.match_score, reverse=True)
+    candidates.sort(
+        key=lambda c: (c.worked_well_before, c.match_score, c.reputation_trusted),
+        reverse=True,
+    )
     return MatchingResponse(
         candidates=candidates[: group_size_needed * 3],
         suggested_group_size=group_size_needed,

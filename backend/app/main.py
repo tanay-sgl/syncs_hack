@@ -69,6 +69,9 @@ async def websocket_endpoint(websocket: WebSocket, token: str | None = None):
     if token:
         try:
             payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+            if payload.get("type") != "access":
+                await websocket.close(code=1008)
+                return
             user_id = int(payload.get("sub"))
         except (JWTError, TypeError, ValueError):
             await websocket.close(code=1008)

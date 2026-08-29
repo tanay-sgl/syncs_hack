@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.auth import get_current_user
+from app.auth import get_current_user, get_current_user_optional
 from app.database import get_db
 from app.models.models import Intent, IntentInterest, IntentStatus, User
 from app.schemas.schemas import (
@@ -15,6 +15,7 @@ from app.schemas.schemas import (
     IntentUpdate,
     MatchingRequest,
     MatchingResponse,
+    PaginatedResponse,
 )
 from app.services.intent_service import (
     create_intent,
@@ -59,11 +60,12 @@ async def create_intent_endpoint(
     return payload
 
 
-@router.get("", response_model=list[IntentResponse])
+@router.get("", response_model=PaginatedResponse[IntentResponse])
 def list_intents(
     status_filter: IntentStatus | None = Query(default=IntentStatus.ACTIVE, alias="status"),
     intent_type: str | None = None,
-    limit: int = Query(default=50, ge=1, le=100),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     expire_stale_intents(db)
@@ -74,20 +76,48 @@ def list_intents(
     if intent_type:
         query = query.filter(Intent.intent_type == intent_type)
 
-    intents = query.order_by(Intent.created_at.desc()).limit(limit).all()
-    return [serialize_intent(intent) for intent in intents]
-
-
-@router.get("/mine", response_model=list[IntentResponse])
-def my_intents(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    total = query.count()
     intents = (
+        query.order_by(Intent.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+    return PaginatedResponse(
+        items=[serialize_intent(intent) for intent in intents],
+        total=total,
+        page=page,
+        page_size=page_size,
+        has_more=(page * page_size) < total,
+    )
+
+
+@router.get("/mine", response_model=PaginatedResponse[IntentResponse])
+def my_intents(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    query = (
         db.query(Intent)
         .options(joinedload(Intent.creator), joinedload(Intent.interests))
         .filter(Intent.creator_id == current_user.id)
-        .order_by(Intent.created_at.desc())
+    )
+    total = query.count()
+    intents = (
+        query.order_by(Intent.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
         .all()
     )
-    return [serialize_intent(intent) for intent in intents]
+    return PaginatedResponse(
+        items=[serialize_intent(intent) for intent in intents],
+        total=total,
+        page=page,
+        page_size=page_size,
+        has_more=(page * page_size) < total,
+    )
 
 
 @router.get("/emergent-events", response_model=list[EmergentEventSuggestion])
@@ -105,11 +135,16 @@ def parse_intent(data: IntentParseRequest):
 
 
 @router.post("/match", response_model=MatchingResponse)
-def match_candidates(data: MatchingRequest, db: Session = Depends(get_db)):
+def match_candidates(
+    data: MatchingRequest,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
+):
     """Matching engine integration point."""
     required_skills = data.required_skills
     group_size = data.group_size_needed
     exclude = list(data.exclude_user_ids)
+    requester_id = current_user.id if current_user else None
 
     if data.intent_id:
         intent = db.query(Intent).filter(Intent.id == data.intent_id).first()
@@ -121,13 +156,14 @@ def match_candidates(data: MatchingRequest, db: Session = Depends(get_db)):
         required_skills = required_skills or skills
         group_size = intent.group_size_needed
         exclude.append(intent.creator_id)
+        requester_id = intent.creator_id
 
     if data.raw_text and not required_skills:
         parsed = parse_intent_stub(data.raw_text)
         required_skills = parsed.required_skills
         group_size = parsed.group_size_needed
 
-    return find_matches(db, required_skills, group_size, exclude)
+    return find_matches(db, required_skills, group_size, exclude, requester_id=requester_id)
 
 
 @router.get("/{intent_id}", response_model=IntentResponse)

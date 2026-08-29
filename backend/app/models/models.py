@@ -46,6 +46,10 @@ class User(Base):
     commitment_level: Mapped[CommitmentLevel | None] = mapped_column(Enum(CommitmentLevel))
     goals: Mapped[str | None] = mapped_column(Text)
     availability: Mapped[str | None] = mapped_column(Text)
+    reputation_score: Mapped[float] = mapped_column(Float, default=3.0, nullable=False)
+    reputation_signal_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    reputation_trusted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    reputation_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -56,6 +60,9 @@ class User(Base):
     intents: Mapped[list["Intent"]] = relationship(back_populates="creator", cascade="all, delete-orphan")
     group_memberships: Mapped[list["GroupMember"]] = relationship(back_populates="user")
     intent_interests: Mapped[list["IntentInterest"]] = relationship(back_populates="user")
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Skill(Base):
@@ -219,4 +226,28 @@ class CollaborationSignal(Base):
     would_collaborate_again: Mapped[bool | None] = mapped_column(Boolean)
     reliability_score: Mapped[float | None] = mapped_column(Float)
     comment: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="refresh_tokens")
+
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

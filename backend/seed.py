@@ -215,6 +215,9 @@ def seed():
                 commitment_level=student["commitment_level"],
                 availability=student["availability"],
                 goals=student["goals"],
+                reputation_score=3.0,
+                reputation_signal_count=0,
+                reputation_trusted=False,
             )
             db.add(user)
             db.flush()
