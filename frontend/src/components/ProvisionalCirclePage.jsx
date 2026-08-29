@@ -1,0 +1,11 @@
+import { Link } from 'react-router-dom'
+import { getActiveCircle } from '../utils/invitationStorage.js'
+
+export default function ProvisionalCirclePage() {
+  const circle = getActiveCircle()
+  if (!circle) return <section className="placeholder-page container"><p className="eyebrow"><span /> PROVISIONAL CIRCLE</p><h1>No Circle has opened yet</h1><p className="placeholder-description">A Circle can begin after at least one invited person chooses to join.</p><Link className="button" to="/invite">Review invitations</Link></section>
+  const accepted = circle.members.filter((person) => person.id !== 'current-user')
+  return (
+    <div className="provisional-page container"><header><p className="eyebrow"><span /> CIRCLE FORMING</p><h1>Your Circle is forming</h1><p>Accepted members can begin coordinating while other invitations remain pending.</p></header><div className="provisional-intent"><span>{circle.intent.activity}</span><span>{circle.intent.availability}</span><p>{circle.intent.skillsNeeded.join(' · ')}</p></div><div className="provisional-columns"><section><p>CURRENT CIRCLE</p><h2>Mutually joined</h2><div className="provisional-members">{circle.members.map((person) => <article key={person.id}><span>{person.initials}</span><div><strong>{person.name}</strong><small>{person.skills.slice(0, 3).join(' · ')}</small></div><i>{person.id === 'current-user' ? 'Organiser' : 'Interested'}</i></article>)}</div></section><section><p>PENDING</p><h2>Invitations still open</h2><div className="provisional-members pending">{circle.pendingInvitations.length ? circle.pendingInvitations.map((person) => <article key={person.id}><span>{person.initials}</span><div><strong>{person.name}</strong><small>{person.skills.slice(0, 2).join(' · ')}</small></div><i>Pending</i></article>) : <em>No invitations are pending.</em>}</div></section></div><aside className="forming-message"><strong>Nothing here is a final assignment.</strong><span>{accepted.length} {accepted.length === 1 ? 'person has' : 'people have'} mutually chosen to start this Circle with you.</span></aside><div className="provisional-links"><Link to="/invite">Manage invitations</Link><Link className="button" to="/circles">Circle workspace coming next →</Link></div></div>
+  )
+}

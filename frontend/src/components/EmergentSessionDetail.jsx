@@ -1,0 +1,8 @@
+import InterestProgress from './InterestProgress.jsx'
+import { useDialogAccessibility } from '../utils/useDialogAccessibility.js'
+
+export default function EmergentSessionDetail({ session, interested, onInterest, onClose }) {
+  const closeRef = useDialogAccessibility(onClose)
+  const count = session.currentInterestCount + (interested ? 1 : 0)
+  return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}><section className="session-detail" role="dialog" aria-modal="true" aria-labelledby="session-detail-title"><button ref={closeRef} className="modal-close" type="button" onClick={onClose} aria-label="Close session details">×</button><p className="eyebrow"><span /> SHARED INTENT PATTERN</p><h2 id="session-detail-title">{session.title}</h2><p>{session.description}</p><div className="session-detail-grid"><article><span>TOPICS</span><strong>{session.topics.join(' · ')}</strong></article><article><span>TIME OVERLAP</span><strong>{session.timeLabel}</strong></article><article><span>LOCATION OVERLAP</span><strong>{session.place}</strong></article><article><span>POSSIBLE GROUP SIZE</span><strong>{session.threshold}–16 people</strong></article></div><InterestProgress count={count} threshold={session.threshold} /><div className="why-emerged"><span>WHY THIS SURFACED</span>{session.whySurfaced.map((reason) => <p key={reason}><i />{reason}</p>)}<strong>This pattern suggests a useful session may be possible.</strong><small>Based on overlapping topic, time and location—not a certainty.</small></div><button className={interested ? 'interest-active' : 'button'} type="button" onClick={onInterest}>{interested ? 'Withdraw interest' : 'I’m interested'}</button></section></div>
+}
