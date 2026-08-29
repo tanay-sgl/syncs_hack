@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: converge-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: converge
+      POSTGRES_PASSWORD: converge
+      POSTGRES_DB: converge
+    ports:
+      - "5433:5432"
+    volumes:
+      - converge_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U converge -d converge"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  converge_pg_data:
