@@ -1,10 +1,99 @@
-# syncs_hack — Converge AI Layer
+# Converge
 
-AI-powered intent parsing, group-optimization, and emergent event detection for [Converge](https://github.com/tanay-sgl/syncs_hack): a coordination platform that understands what you're trying to accomplish and assembles the right people to make it happen.
+**Turn intent into people.**
 
-This repo contains the core AI and matching engine — deployed as Vercel serverless functions.
+AI-powered real-time coordination platform that understands what you're trying to accomplish and assembles the right people to make it happen.
 
-## Setup
+## Repository layout
+
+```
+syncs_hack/
+├── backend/          # FastAPI server + Postgres (auth, intents, groups, WS)
+├── api/              # Vercel serverless AI layer (parse / match / clusters)
+├── lib/              # Shared AI matching & clustering logic
+├── frontend/         # React UI (points at http://localhost:8000 by default)
+└── tests/            # AI layer unit tests
+```
+
+| Layer | Owner focus | Run locally |
+|-------|-------------|-------------|
+| Backend API | Maria | `uvicorn` on port 8000 |
+| AI / matching | Tanay | `vercel dev` |
+| Frontend | Sneha | Vite (see `frontend/`) |
+
+---
+
+## Backend (FastAPI + PostgreSQL)
+
+### 1. Start PostgreSQL
+
+```bash
+cd backend
+docker compose up -d
+```
+
+### 2. Run migrations, seed, and start the API
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+alembic upgrade head
+python3 seed.py
+uvicorn app.main:app --reload --port 8000
+```
+
+> On macOS, use `python3` (not `python`). If port 8000 is in use: `lsof -i :8000` then `kill <PID>`, or use `--port 8001`.
+
+**Database:** PostgreSQL via Docker on `localhost:5433` (user/password/db: `converge` / `converge` / `converge`).
+
+**API docs:** http://localhost:8000/docs
+
+### Schema changes
+
+```bash
+alembic revision --autogenerate -m "describe change"
+alembic upgrade head
+```
+
+### Auth notes
+
+- Login returns `access_token` (1 hour) + `refresh_token` (7 days)
+- Refresh: `POST /api/auth/refresh` with `{ "refresh_token": "..." }`
+- Change password: `POST /api/auth/change-password`
+- Forgot/reset: `POST /api/auth/forgot-password` → `POST /api/auth/reset-password`
+  - In `ENVIRONMENT=development`, forgot-password returns `reset_token` in the response
+
+### Demo credentials
+
+All seeded users use password: `Password1!`
+
+Example: `alex_chen` or `alex.chen@uni.edu` / `Password1!`
+
+### Reputation & collaboration graph
+
+- Score starts at **3.0** (neutral)
+- Needs **3+ signals** before `reputation_trusted=true`
+- Recent signals weigh more (90-day half-life); idle decay after 180 days
+- Endpoints: `/api/users/me/reputation`, `/api/users/{id}/collaborators`, `/api/users/{id}/compatibility/{other_id}`
+
+### Backend ↔ AI integration points
+
+| Team     | FastAPI hook                    | AI layer equivalent        |
+|----------|---------------------------------|----------------------------|
+| Tanay    | `POST /api/intents/parse`       | `POST /api/parse-intent`   |
+| Tanay    | `POST /api/intents/match`       | `POST /api/match`          |
+| Vandanaa | `GET /api/intents/emergent-events` | `POST /api/detect-clusters` |
+| Sneha    | `WS /ws?token=<jwt>`            | Real-time updates          |
+
+---
+
+## AI layer (Vercel serverless)
+
+Intent parsing, group-optimization, and emergent event detection — deployed as Vercel serverless functions.
+
+### Setup
 
 ```bash
 npm install
@@ -34,15 +123,15 @@ Deploy:
 vercel --prod
 ```
 
-## Endpoints
+### Endpoints
 
-### `GET /api/health`
+#### `GET /api/health`
 
 Health check. Returns `200 { "status": "ok" }`.
 
 ---
 
-### `POST /api/parse-intent`
+#### `POST /api/parse-intent`
 
 Converts natural language into structured coordination intent using Google Gemini. Handles all Converge intent categories.
 
@@ -127,7 +216,7 @@ Converts natural language into structured coordination intent using Google Gemin
 
 ---
 
-### `POST /api/match`
+#### `POST /api/match`
 
 Scores and ranks candidates against a parsed intent, then assembles a group with a collaboration space. Pure scoring logic, no LLM call.
 
@@ -243,7 +332,7 @@ The `groupSpace` is auto-generated based on the intent category and provides a r
 
 ---
 
-### `POST /api/detect-clusters`
+#### `POST /api/detect-clusters`
 
 Detects emergent events by clustering similar active intents. When multiple people want the same thing at the same time, Converge can auto-suggest a group session instead of waiting for someone to organise it.
 
@@ -311,7 +400,7 @@ Clusters are sorted by size descending. The `suggestedEvent` is a human-readable
 |--------|-----------------------------------------------|
 | 400    | Missing/invalid `intents` or bad intent at index N |
 
-## Tests
+### AI layer tests
 
 31 tests covering the core matching and clustering logic:
 
@@ -325,7 +414,7 @@ tests/
 
 Run with `npm test`.
 
-## Project structure
+### AI layer project structure
 
 ```
 api/
