@@ -1,8 +1,8 @@
 # syncs_hack — Converge AI Layer
 
-AI-powered intent parsing and group-optimization engine for [Converge](https://github.com/tanay-sgl/syncs_hack): a coordination platform that understands what you're trying to accomplish and assembles the right people to make it happen.
+AI-powered intent parsing, group-optimization, and emergent event detection for [Converge](https://github.com/tanay-sgl/syncs_hack): a coordination platform that understands what you're trying to accomplish and assembles the right people to make it happen.
 
-This repo contains the two core API endpoints — the intent parser (LLM) and the matching/group-optimization algorithm — deployed as Vercel serverless functions.
+This repo contains the core AI and matching engine — deployed as Vercel serverless functions.
 
 ## Setup
 
@@ -20,6 +20,12 @@ Run locally:
 
 ```bash
 vercel dev
+```
+
+Run tests:
+
+```bash
+npm test
 ```
 
 Deploy:
@@ -140,15 +146,15 @@ Weights shift based on what kind of coordination is happening:
 | `mentor`    | **40%** | 15%        | 5%       | 5%              | 35%        |
 | `investor`  | 30%   | 5%           | 10%      | 10%             | **45%**    |
 
-**Scoring dimensions**
+**Five scoring dimensions**
 
 | Dimension           | How it works                                                                                          |
 |---------------------|-------------------------------------------------------------------------------------------------------|
-| Skill relevance     | Semantic matching via 18 skill clusters (e.g. "react" ~ "frontend"). Factors in experience level.     |
+| Skill relevance     | Semantic matching via 18 skill clusters (e.g. "react" ~ "frontend"). Course enrollment counts for study intents. Factors in experience level vs. requirement. |
 | Availability overlap| Day overlap (70%) + timezone proximity by UTC hour difference (30%).                                   |
 | Location proximity  | Same city/campus = 1.0, nearby = 0.8, remote-flexible = 0.7, mismatch = 0.2.                         |
 | Complementarity     | Penalizes skill duplication in the group. Bonus for filling unfilled roles. Greedy sequential selection.|
-| Contextual          | Category-specific: course enrollment (study), commitment/style compatibility, seniority (mentor), preference/bio matching (investor/coffee). |
+| Contextual          | Category-specific: course enrollment (study), commitment/style compatibility (cofounder/hackathon), seniority (mentor), preference/bio matching (investor/coffee). |
 
 **Request**
 
@@ -216,9 +222,7 @@ Weights shift based on what kind of coordination is happening:
   ],
   "groupSpace": {
     "objective": "Hackathon team — hackathon",
-    "roles": [
-      { "userId": "1", "role": "frontend" }
-    ],
+    "roles": [{ "userId": "1", "role": "frontend" }],
     "suggestedTime": "saturday",
     "nextSteps": [
       "Agree on project idea and tech stack",
@@ -237,17 +241,108 @@ The `groupSpace` is auto-generated based on the intent category and provides a r
 |--------|-----------------------------------------------------------|
 | 400    | Missing/invalid `intent`, `candidates`, or bad user at index N |
 
+---
+
+### `POST /api/detect-clusters`
+
+Detects emergent events by clustering similar active intents. When multiple people want the same thing at the same time, Converge can auto-suggest a group session instead of waiting for someone to organise it.
+
+**How clustering works**
+
+Intents are grouped when they share:
+- Same category (study + study, not study + coffee)
+- Same course code (if applicable)
+- Overlapping skills (via skill similarity clusters)
+- Overlapping availability days
+- Compatible locations
+
+High-urgency intents are used as cluster seeds first. Clusters below `minSize` are discarded.
+
+**Request**
+
+```json
+{
+  "intents": [
+    {
+      "id": "i1",
+      "userId": "u1",
+      "intent": { "..." : "parsed intent object" }
+    },
+    {
+      "id": "i2",
+      "userId": "u2",
+      "intent": { "..." : "parsed intent object" }
+    }
+  ],
+  "minSize": 3
+}
+```
+
+| Field     | Type            | Required | Constraints  | Description                              |
+|-----------|-----------------|----------|--------------|------------------------------------------|
+| `intents` | ActiveIntent[]  | yes      | 1–1000 items | Array of active intents with user IDs     |
+| `minSize` | number          | no       | 2–50         | Minimum cluster size (default 3)          |
+
+**Response** `200`
+
+```json
+{
+  "clusters": [
+    {
+      "category": "study",
+      "course": "COMP2022",
+      "topic": null,
+      "location": "campus",
+      "timeWindow": "tonight",
+      "intentIds": ["i1", "i2", "i3", "i4"],
+      "userIds": ["u1", "u2", "u3", "u4"],
+      "size": 4,
+      "suggestedEvent": "COMP2022 Study Session — 4 people"
+    }
+  ]
+}
+```
+
+Clusters are sorted by size descending. The `suggestedEvent` is a human-readable event name generated from the intent category and details.
+
+**Errors**
+
+| Status | Reason                                        |
+|--------|-----------------------------------------------|
+| 400    | Missing/invalid `intents` or bad intent at index N |
+
+## Tests
+
+31 tests covering the core matching and clustering logic:
+
+```
+tests/
+  skills.test.ts       -- Skill similarity and cluster matching (7 tests)
+  timezones.test.ts    -- Timezone offset and proximity scoring (5 tests)
+  scoring.test.ts      -- Category-aware scoring and group optimization (12 tests)
+  clustering.test.ts   -- Emergent event detection (7 tests)
+```
+
+Run with `npm test`.
+
 ## Project structure
 
 ```
 api/
-  health.ts            -- Health check endpoint
-  parse-intent.ts      -- Intent parsing (Gemini + Zod validation)
-  match.ts             -- Candidate matching and group assembly
+  health.ts              -- Health check endpoint
+  parse-intent.ts        -- Intent parsing (Gemini + Zod validation)
+  match.ts               -- Candidate matching and group assembly
+  detect-clusters.ts     -- Emergent event detection
 lib/
-  types.ts             -- Shared TypeScript types
-  prompts.ts           -- System prompt with schema and 6 few-shot examples
-  scoring.ts           -- Category-aware weighted scoring with group optimization
-  skills.ts            -- 18 skill similarity clusters
-  timezones.ts         -- UTC offset map and timezone proximity scoring
+  types.ts               -- Shared TypeScript types
+  prompts.ts             -- System prompt with schema and 6 few-shot examples
+  scoring.ts             -- Category-aware weighted scoring with group optimization
+  skills.ts              -- 18 skill similarity clusters
+  timezones.ts           -- UTC offset map and timezone proximity scoring
+  clustering.ts          -- Intent clustering algorithm
+tests/
+  skills.test.ts         -- Skill matching tests
+  timezones.test.ts      -- Timezone scoring tests
+  scoring.test.ts        -- Scoring engine tests (study, hackathon, cofounder, coffee, mentor)
+  clustering.test.ts     -- Clustering algorithm tests
 ```
