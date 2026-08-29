@@ -12,7 +12,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.get("", response_model=list[UserPublic])
 def list_users(
-    q: str | None = Query(default=None, description="Search by name or university"),
+    q: str | None = Query(default=None, description="Search by name, username, or university"),
     skill: str | None = Query(default=None, description="Filter by skill name"),
     limit: int = Query(default=50, ge=1, le=100),
     db: Session = Depends(get_db),
@@ -21,7 +21,9 @@ def list_users(
 
     if q:
         pattern = f"%{q}%"
-        query = query.filter((User.name.ilike(pattern)) | (User.university.ilike(pattern)))
+        query = query.filter(
+            (User.name.ilike(pattern)) | (User.username.ilike(pattern)) | (User.university.ilike(pattern))
+        )
 
     if skill:
         query = query.join(User.skills).join(UserSkill.skill).filter(Skill.name.ilike(f"%{skill}%"))

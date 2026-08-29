@@ -2,7 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from app.auth import authenticate_user, create_access_token, get_current_user, get_password_hash, get_user_by_email
+from app.auth import (
+    authenticate_user,
+    create_access_token,
+    get_current_user,
+    get_password_hash,
+    get_user_by_email,
+    get_user_by_username,
+)
 from app.database import get_db
 from app.models.models import User
 from app.schemas.schemas import Token, UserMe, UserRegister
@@ -14,8 +21,11 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 def register(data: UserRegister, db: Session = Depends(get_db)):
     if get_user_by_email(db, data.email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    if get_user_by_username(db, data.username):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
 
     user = User(
+        username=data.username,
         email=data.email,
         password_hash=get_password_hash(data.password),
         name=data.name,
@@ -26,6 +36,7 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
     db.refresh(user)
     return {
         "id": user.id,
+        "username": user.username,
         "email": user.email,
         "name": user.name,
         "university": user.university,
@@ -46,7 +57,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Incorrect username/email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return Token(access_token=create_access_token(user.id))

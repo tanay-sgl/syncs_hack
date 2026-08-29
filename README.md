@@ -56,6 +56,6 @@ API docs: http://localhost:8000/docs
 
 ## Demo Credentials
 
-All seeded users use password: `password123`
+All seeded users use password: `Password1!`
 
-Example: `alex.chen@uni.edu` / `password123`
+Example: `alex_chen` or `alex.chen@uni.edu` / `Password1!`

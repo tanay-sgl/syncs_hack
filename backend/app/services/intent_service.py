@@ -73,6 +73,7 @@ def build_user_public(user: User) -> dict[str, Any]:
         )
     return {
         "id": user.id,
+        "username": user.username,
         "name": user.name,
         "university": user.university,
         "bio": user.bio,

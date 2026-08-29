@@ -34,12 +34,24 @@ def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
 
 
+def get_user_by_username(db: Session, username: str) -> User | None:
+    return db.query(User).filter(User.username == username.strip()).first()
+
+
+def get_user_by_login(db: Session, login: str) -> User | None:
+    login = login.strip()
+    user = get_user_by_email(db, login)
+    if user:
+        return user
+    return get_user_by_username(db, login)
+
+
 def get_user_by_id(db: Session, user_id: int) -> User | None:
     return db.query(User).filter(User.id == user_id).first()
 
 
-def authenticate_user(db: Session, email: str, password: str) -> User | None:
-    user = get_user_by_email(db, email)
+def authenticate_user(db: Session, login: str, password: str) -> User | None:
+    user = get_user_by_login(db, login)
     if not user or not verify_password(password, user.password_hash):
         return None
     return user

@@ -1,7 +1,8 @@
 from datetime import datetime
+import re
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.models.models import (
     CommitmentLevel,
@@ -23,10 +24,34 @@ class TokenData(BaseModel):
 
 
 class UserRegister(BaseModel):
+    username: str = Field(min_length=3, max_length=30)
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     name: str = Field(min_length=1, max_length=120)
     university: str | None = None
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, value: str) -> str:
+        username = value.strip()
+        if not re.fullmatch(r"[a-zA-Z][a-zA-Z0-9_]{2,29}", username):
+            raise ValueError(
+                "Username must be 3-30 characters, start with a letter, and contain only letters, numbers, or underscores"
+            )
+        return username
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        if not re.search(r"[a-z]", value):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r"[A-Z]", value):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r"\d", value):
+            raise ValueError("Password must contain at least one number")
+        if not re.search(r"[^a-zA-Z0-9]", value):
+            raise ValueError("Password must contain at least one special character")
+        return value
 
 
 class UserLogin(BaseModel):
@@ -62,6 +87,7 @@ class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    username: str
     name: str
     university: str | None
     bio: str | None

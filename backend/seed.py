@@ -37,6 +37,7 @@ SKILLS = [
 
 STUDENTS = [
     {
+        "username": "alex_chen",
         "email": "alex.chen@uni.edu",
         "name": "Alex Chen",
         "university": "University of Sydney",
@@ -48,6 +49,7 @@ STUDENTS = [
         "goals": "Build a startup after graduation",
     },
     {
+        "username": "sneha_patel",
         "email": "sneha.patel@uni.edu",
         "name": "Sneha Patel",
         "university": "University of Sydney",
@@ -59,6 +61,7 @@ STUDENTS = [
         "goals": "Design products that help students learn",
     },
     {
+        "username": "tanay_sharma",
         "email": "tanay.sharma@uni.edu",
         "name": "Tanay Sharma",
         "university": "University of Sydney",
@@ -70,6 +73,7 @@ STUDENTS = [
         "goals": "Work on impactful AI products",
     },
     {
+        "username": "maria_garcia",
         "email": "maria.garcia@uni.edu",
         "name": "Maria Garcia",
         "university": "University of Sydney",
@@ -81,6 +85,7 @@ STUDENTS = [
         "goals": "Technical cofounder for a health-tech startup",
     },
     {
+        "username": "james_wong",
         "email": "james.wong@uni.edu",
         "name": "James Wong",
         "university": "University of Sydney",
@@ -92,6 +97,7 @@ STUDENTS = [
         "goals": "Ace COMP2022 finals",
     },
     {
+        "username": "priya_singh",
         "email": "priya.singh@uni.edu",
         "name": "Priya Singh",
         "university": "University of Sydney",
@@ -103,6 +109,7 @@ STUDENTS = [
         "goals": "Launch a student startup",
     },
     {
+        "username": "liam_oconnor",
         "email": "liam.oconnor@uni.edu",
         "name": "Liam O'Connor",
         "university": "University of Sydney",
@@ -114,6 +121,7 @@ STUDENTS = [
         "goals": "Join a hackathon-winning team",
     },
     {
+        "username": "vandanaa_krishnan",
         "email": "vandanaa.krishnan@uni.edu",
         "name": "Vandanaa Krishnan",
         "university": "University of Sydney",
@@ -196,8 +204,9 @@ def seed():
         email_to_user: dict[str, User] = {}
         for student in STUDENTS:
             user = User(
+                username=student["username"],
                 email=student["email"],
-                password_hash=get_password_hash("password123"),
+                password_hash=get_password_hash("Password1!"),
                 name=student["name"],
                 university=student["university"],
                 bio=student["bio"],
@@ -235,7 +244,7 @@ def seed():
 
         db.commit()
         print(f"Seeded {len(STUDENTS)} users, {len(SKILLS)} skills, {len(SAMPLE_INTENTS)} intents")
-        print("Default password for all users: password123")
+        print("Default password for all users: Password1!")
     finally:
         db.close()
 
