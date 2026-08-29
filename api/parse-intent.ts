@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { text } = await generateText({
-      model: google("gemini-2.5-flash-preview-05-20"),
+      model: google("gemini-3.6-flash"),
       system: INTENT_SYSTEM_PROMPT,
       prompt: query,
       maxTokens: 500,
