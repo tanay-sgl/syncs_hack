@@ -1,0 +1,455 @@
+[
+  {
+    "id": "sydney-ai-society",
+    "name": "Sydney AI Society",
+    "shortName": "AI Society",
+    "category": "Technology",
+    "description": "A student community making artificial intelligence practical, responsible and accessible.",
+    "university": "University of Sydney",
+    "memberCount": 428,
+    "logoInitials": "AI",
+    "interests": [
+      "Applied AI",
+      "Responsible AI",
+      "Health-tech",
+      "Education"
+    ],
+    "tags": [
+      "AI",
+      "Workshops",
+      "Hackathons"
+    ],
+    "upcomingActivities": [
+      "AI Beginners Workshop · Next Wednesday",
+      "Responsible AI Panel · 12 September"
+    ],
+    "openIntents": [
+      {
+        "id": "ai-mentors",
+        "type": "Mentoring",
+        "title": "Need 4 mentors for an AI beginners workshop",
+        "description": "Support small groups as they build their first practical machine-learning model.",
+        "peopleNeeded": 4,
+        "skillsNeeded": [
+          "Machine Learning",
+          "Python",
+          "Mentoring"
+        ],
+        "time": "Next Wednesday · 5 PM",
+        "location": "Engineering precinct",
+        "commitment": "One evening",
+        "currentInterest": 2,
+        "status": "Open need"
+      },
+      {
+        "id": "health-speakers",
+        "type": "Speaking",
+        "title": "Looking for 2 speakers working in health-tech",
+        "description": "Share practical lessons from building responsible products in digital health.",
+        "peopleNeeded": 2,
+        "skillsNeeded": [
+          "Health-tech",
+          "Speaking"
+        ],
+        "time": "Next week · Thursday",
+        "location": "Campus",
+        "commitment": "45-minute session",
+        "currentInterest": 1,
+        "status": "Open need"
+      },
+      {
+        "id": "ai-hack-design",
+        "type": "Projects",
+        "title": "Hackathon project needs UI/UX designer",
+        "description": "Help make an AI accessibility prototype clear, useful and demo-ready.",
+        "peopleNeeded": 1,
+        "skillsNeeded": [
+          "UI/UX",
+          "Figma"
+        ],
+        "time": "Now · SYNCS weekend",
+        "location": "Hackathon venue",
+        "commitment": "Hackathon sprint",
+        "currentInterest": 3,
+        "status": "Project forming"
+      }
+    ],
+    "projects": [
+      {
+        "id": "ai-accessibility",
+        "title": "Accessible AI Study Assistant",
+        "description": "A prototype that adapts study material for different access needs.",
+        "currentCapabilities": [
+          "Machine Learning",
+          "Research"
+        ],
+        "skillsNeeded": [
+          "UI/UX",
+          "Frontend"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sydney-computing-society",
+    "name": "Sydney Computing Society",
+    "shortName": "Computing Society",
+    "category": "Technology",
+    "description": "Connecting computing students through workshops, peer learning and industry events.",
+    "university": "University of Sydney",
+    "memberCount": 612,
+    "logoInitials": "CS",
+    "interests": [
+      "Programming",
+      "Open source",
+      "Education"
+    ],
+    "tags": [
+      "Computing",
+      "Community",
+      "Workshops"
+    ],
+    "upcomingActivities": [
+      "Peer Programming Night · Friday"
+    ],
+    "openIntents": [
+      {
+        "id": "cs-volunteers",
+        "type": "Volunteering",
+        "title": "5 workshop volunteers needed",
+        "description": "Welcome attendees and support beginner coding activities.",
+        "peopleNeeded": 5,
+        "skillsNeeded": [
+          "Programming",
+          "Mentoring",
+          "Event support"
+        ],
+        "time": "Saturday · 10 AM",
+        "location": "School of Computer Science",
+        "commitment": "Half day",
+        "currentInterest": 3,
+        "status": "Open need"
+      }
+    ],
+    "projects": [
+      {
+        "id": "course-map",
+        "title": "Open Course Map",
+        "description": "Student-built visual guide to computing electives.",
+        "currentCapabilities": [
+          "Research"
+        ],
+        "skillsNeeded": [
+          "Frontend",
+          "Design"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "entrepreneurship-society",
+    "name": "Sydney Entrepreneurship Society",
+    "shortName": "Entrepreneurship",
+    "category": "Entrepreneurship",
+    "description": "A community for students testing ideas, meeting collaborators and learning by building.",
+    "university": "University of Sydney",
+    "memberCount": 375,
+    "logoInitials": "ES",
+    "interests": [
+      "Startups",
+      "Pitching",
+      "Product"
+    ],
+    "tags": [
+      "Founders",
+      "Pitch nights",
+      "Startups"
+    ],
+    "upcomingActivities": [
+      "Student Pitch Night · This Thursday"
+    ],
+    "openIntents": [
+      {
+        "id": "student-founders",
+        "type": "Founders",
+        "title": "Student founders for pitch night",
+        "description": "Share an early idea and meet people interested in helping it move forward.",
+        "peopleNeeded": 8,
+        "skillsNeeded": [
+          "Pitching",
+          "Entrepreneurship"
+        ],
+        "time": "Thursday · 6 PM",
+        "location": "ABS building",
+        "commitment": "One evening",
+        "currentInterest": 6,
+        "status": "Expressions of interest"
+      }
+    ],
+    "projects": [
+      {
+        "id": "founder-matching",
+        "title": "Founder Problem Library",
+        "description": "Collecting real startup problems for student teams.",
+        "currentCapabilities": [
+          "Research",
+          "Product"
+        ],
+        "skillsNeeded": [
+          "Design"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "women-in-tech",
+    "name": "Women in Technology Society",
+    "shortName": "Women in Tech",
+    "category": "Social Impact",
+    "description": "Peer support, mentoring and opportunities for women and gender-diverse technologists.",
+    "university": "University of Sydney",
+    "memberCount": 284,
+    "logoInitials": "WT",
+    "interests": [
+      "Career development",
+      "Software engineering",
+      "Community"
+    ],
+    "tags": [
+      "Mentoring",
+      "Inclusion",
+      "Technology"
+    ],
+    "upcomingActivities": [
+      "Mentoring Circle · Tuesday"
+    ],
+    "openIntents": [
+      {
+        "id": "wit-mentors",
+        "type": "Mentoring",
+        "title": "3 software mentors needed",
+        "description": "Support students navigating projects, internships and early technical careers.",
+        "peopleNeeded": 3,
+        "skillsNeeded": [
+          "Software engineering",
+          "Mentoring"
+        ],
+        "time": "This week · Tuesday",
+        "location": "Campus",
+        "commitment": "2 hours monthly",
+        "currentInterest": 1,
+        "status": "Open need"
+      }
+    ],
+    "projects": []
+  },
+  {
+    "id": "robotics-club",
+    "name": "Sydney Robotics Club",
+    "shortName": "Robotics Club",
+    "category": "Engineering",
+    "description": "An interdisciplinary group building autonomous systems through practical team projects.",
+    "university": "University of Sydney",
+    "memberCount": 196,
+    "logoInitials": "RC",
+    "interests": [
+      "Robotics",
+      "Computer vision",
+      "Hardware"
+    ],
+    "tags": [
+      "Engineering",
+      "Makerspace",
+      "Projects"
+    ],
+    "upcomingActivities": [
+      "Rover Build Night · Wednesday"
+    ],
+    "openIntents": [
+      {
+        "id": "rover-build",
+        "type": "Projects",
+        "title": "Autonomous rover contributors",
+        "description": "Help the rover perceive obstacles and report live system status.",
+        "peopleNeeded": 3,
+        "skillsNeeded": [
+          "Computer vision",
+          "Embedded systems",
+          "Mechanical design"
+        ],
+        "time": "This week",
+        "location": "Makerspace",
+        "commitment": "4 hrs/week",
+        "currentInterest": 4,
+        "status": "Project forming"
+      }
+    ],
+    "projects": [
+      {
+        "id": "autonomous-rover",
+        "title": "Autonomous Rover",
+        "description": "A small autonomous vehicle for outdoor navigation challenges.",
+        "currentCapabilities": [
+          "Embedded systems",
+          "Mechanical engineering"
+        ],
+        "skillsNeeded": [
+          "Computer vision",
+          "Frontend dashboard"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "health-innovation",
+    "name": "Student Health Innovation Network",
+    "shortName": "Health Innovation",
+    "category": "Health",
+    "description": "Students and researchers exploring safer, more useful health innovation.",
+    "university": "Sydney universities",
+    "memberCount": 143,
+    "logoInitials": "HI",
+    "interests": [
+      "Health-tech",
+      "Clinical research",
+      "Accessibility"
+    ],
+    "tags": [
+      "Health",
+      "Research",
+      "Startups"
+    ],
+    "upcomingActivities": [
+      "Clinical Problems Forum · Next Monday"
+    ],
+    "openIntents": [
+      {
+        "id": "clinical-researchers",
+        "type": "Projects",
+        "title": "Research partners for medication-access project",
+        "description": "Explore how students navigate medication information and support.",
+        "peopleNeeded": 2,
+        "skillsNeeded": [
+          "Research",
+          "Health-tech"
+        ],
+        "time": "This week",
+        "location": "Nearby",
+        "commitment": "3 hrs/week",
+        "currentInterest": 2,
+        "status": "Exploration open"
+      }
+    ],
+    "projects": [
+      {
+        "id": "med-access",
+        "title": "Medication Access Explorer",
+        "description": "Early research into accessible medication information.",
+        "currentCapabilities": [
+          "Clinical context"
+        ],
+        "skillsNeeded": [
+          "User research",
+          "Frontend"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "design-collective",
+    "name": "Sydney Design Collective",
+    "shortName": "Design Collective",
+    "category": "Research",
+    "description": "A cross-disciplinary group using design critique and research to improve student projects.",
+    "university": "University of Sydney",
+    "memberCount": 221,
+    "logoInitials": "DC",
+    "interests": [
+      "UI/UX",
+      "Service design",
+      "Accessibility"
+    ],
+    "tags": [
+      "Design",
+      "Critique",
+      "Research"
+    ],
+    "upcomingActivities": [
+      "Open Critique · Friday"
+    ],
+    "openIntents": [
+      {
+        "id": "critique-facilitators",
+        "type": "Events",
+        "title": "Facilitators for open design critique",
+        "description": "Help small groups give useful, inclusive prototype feedback.",
+        "peopleNeeded": 3,
+        "skillsNeeded": [
+          "UI/UX",
+          "Facilitation"
+        ],
+        "time": "Friday · 5 PM",
+        "location": "Wilkinson Building",
+        "commitment": "2 hours",
+        "currentInterest": 2,
+        "status": "Open need"
+      }
+    ],
+    "projects": []
+  },
+  {
+    "id": "impact-volunteers",
+    "name": "Campus Impact Collective",
+    "shortName": "Impact Collective",
+    "category": "Social Impact",
+    "description": "Students coordinating practical volunteer projects with local community partners.",
+    "university": "University of Sydney",
+    "memberCount": 318,
+    "logoInitials": "IC",
+    "interests": [
+      "Community",
+      "Volunteering",
+      "Social impact"
+    ],
+    "tags": [
+      "Community",
+      "Volunteers",
+      "Local impact"
+    ],
+    "upcomingActivities": [
+      "Community Partner Meetup · Saturday"
+    ],
+    "openIntents": [
+      {
+        "id": "digital-mentors",
+        "type": "Volunteering",
+        "title": "Digital skills mentors for community sessions",
+        "description": "Support community members with everyday digital tools and online services.",
+        "peopleNeeded": 6,
+        "skillsNeeded": [
+          "Mentoring",
+          "Digital skills"
+        ],
+        "time": "Saturday · 1 PM",
+        "location": "Nearby",
+        "commitment": "3 hours",
+        "currentInterest": 4,
+        "status": "Volunteers forming"
+      }
+    ],
+    "projects": [
+      {
+        "id": "volunteer-map",
+        "title": "Local Volunteer Map",
+        "description": "Make community opportunities easier for students to discover.",
+        "currentCapabilities": [
+          "Community research"
+        ],
+        "skillsNeeded": [
+          "Frontend",
+          "Product"
+        ]
+      }
+    ]
+  }
+]

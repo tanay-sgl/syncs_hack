@@ -6,6 +6,8 @@ import CircleCoverage from './CircleCoverage.jsx'
 import ProfilePreview from './ProfilePreview.jsx'
 import SavedCandidateTray from './SavedCandidateTray.jsx'
 import SuggestedCombination from './SuggestedCombination.jsx'
+import { fetchCandidates, matchPeople } from '../api/client.js'
+import { adaptCandidateToApi, adaptFrontendIntentToApi, adaptMatchResults } from '../api/adapters.js'
 import { getMockMatches } from '../services/matchServiceMock.js'
 import { evaluateCircle } from '../utils/evaluateCircle.js'
 import { generateSuggestedCombinations } from '../utils/generateSuggestedCombinations.js'
@@ -21,8 +23,23 @@ export default function CircleBuilder() {
   const navigate = useNavigate()
   const trayRef = useRef(null)
   const intent = useMemo(() => getReviewedIntent() || fallbackIntent, [])
-  const allCandidates = useMemo(() => getMockMatches(intent), [intent])
+  const mockMatches = useMemo(() => getMockMatches(intent), [intent])
+  const [allCandidates, setAllCandidates] = useState(mockMatches)
   const initialSaved = useMemo(() => getSavedPeople(), [])
+
+  useEffect(() => {
+    let active = true
+    fetchCandidates()
+      .then((pool) => {
+        const apiIntent = adaptFrontendIntentToApi(intent)
+        const apiCandidates = pool.map((c) => adaptCandidateToApi(c, intent))
+        return matchPeople(apiIntent, apiCandidates).then((response) => {
+          if (active) setAllCandidates(adaptMatchResults(response, pool, intent))
+        })
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [intent])
   const [savedIds, setSavedIds] = useState(initialSaved.length ? initialSaved : fallbackSaved)
   const [circleIds, setCircleIds] = useState(() => getCircleDraft()?.memberIds || [])
   const [activeSuggestion, setActiveSuggestion] = useState('')

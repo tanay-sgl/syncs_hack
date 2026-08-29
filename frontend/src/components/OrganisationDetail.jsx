@@ -3,11 +3,14 @@ import { Link, useParams } from 'react-router-dom'
 import CreateOrganisationNeed from './CreateOrganisationNeed.jsx'
 import OrganisationOpportunity from './OrganisationOpportunity.jsx'
 import OrganisationProject from './OrganisationProject.jsx'
+import { fetchOrganisations } from '../api/client.js'
 import { mockOrganisations } from '../data/mockOrganisations.js'
 import { getCustomOrganisationNeeds,getOrganisationInterests,saveCustomOrganisationNeeds,saveOrganisationInterests } from '../utils/organisationStorage.js'
 
 export default function OrganisationDetail(){
-  const {id}=useParams();const organisation=mockOrganisations.find((item)=>item.id===id)
+  const {id}=useParams();const [organisations,setOrganisations]=useState(mockOrganisations)
+  useEffect(()=>{fetchOrganisations().then(setOrganisations).catch(()=>{})},[])
+  const organisation=organisations.find((item)=>item.id===id)
   const [tab,setTab]=useState('Overview');const [interests,setInterests]=useState(getOrganisationInterests);const [customNeeds,setCustomNeeds]=useState(getCustomOrganisationNeeds);const [creating,setCreating]=useState(false)
   useEffect(()=>saveOrganisationInterests(interests),[interests]);useEffect(()=>saveCustomOrganisationNeeds(customNeeds),[customNeeds])
   if(!organisation)return <section className="placeholder-page container"><p className="eyebrow"><span /> ORGANISATION NETWORK</p><h1>Organisation not found</h1><p className="placeholder-description">This organisation isn’t part of the current demo network.</p><Link className="button" to="/organisations">Back to organisations</Link></section>

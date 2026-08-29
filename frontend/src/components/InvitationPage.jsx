@@ -6,6 +6,8 @@ import InvitationPersonCard from './InvitationPersonCard.jsx'
 import MutualChoicePanel from './MutualChoicePanel.jsx'
 import ProfilePreview from './ProfilePreview.jsx'
 import ResponseSummary from './ResponseSummary.jsx'
+import { fetchCandidates, matchPeople } from '../api/client.js'
+import { adaptCandidateToApi, adaptFrontendIntentToApi, adaptMatchResults } from '../api/adapters.js'
 import { getMockMatches } from '../services/matchServiceMock.js'
 import { getCircleDraft } from '../utils/circleStorage.js'
 import { getInvitations, saveActiveCircle, saveInvitations } from '../utils/invitationStorage.js'
@@ -18,7 +20,23 @@ const fallbackDraft = ['alex-rivera', 'maya-chen', 'jordan-lee']
 export default function InvitationPage() {
   const navigate = useNavigate()
   const intent = useMemo(() => getReviewedIntent() || fallbackIntent, [])
-  const candidates = useMemo(() => getMockMatches(intent), [intent])
+  const mockMatches = useMemo(() => getMockMatches(intent), [intent])
+  const [candidates, setCandidates] = useState(mockMatches)
+
+  useEffect(() => {
+    let active = true
+    fetchCandidates()
+      .then((pool) => {
+        const apiIntent = adaptFrontendIntentToApi(intent)
+        const apiCandidates = pool.map((c) => adaptCandidateToApi(c, intent))
+        return matchPeople(apiIntent, apiCandidates).then((response) => {
+          if (active) setCandidates(adaptMatchResults(response, pool, intent))
+        })
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [intent])
+
   const people = useMemo(() => {
     const ids = getCircleDraft()?.memberIds || fallbackDraft
     const selected = ids.map((id) => candidates.find((person) => person.id === id)).filter(Boolean)

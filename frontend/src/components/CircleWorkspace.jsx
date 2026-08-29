@@ -4,6 +4,8 @@ import CircleAgenda from './CircleAgenda.jsx'
 import CircleMeeting from './CircleMeeting.jsx'
 import CircleTasks from './CircleTasks.jsx'
 import ProfilePreview from './ProfilePreview.jsx'
+import { fetchCandidates, matchPeople } from '../api/client.js'
+import { adaptCandidateToApi, adaptFrontendIntentToApi, adaptMatchResults } from '../api/adapters.js'
 import { getMockMatches } from '../services/matchServiceMock.js'
 import { evaluateCircle } from '../utils/evaluateCircle.js'
 import { getActiveCircle, saveActiveCircle } from '../utils/invitationStorage.js'
@@ -15,15 +17,31 @@ const defaultAgenda = ['Finalize hackathon problem', 'Agree on architecture', 'A
 const defaultTasks = [{ id: 'task-frontend', title: 'Set up frontend', ownerId: 'alex-rivera', status: 'In progress' }, { id: 'task-parser', title: 'Build intent parser', ownerId: 'current-user', status: 'Todo' }, { id: 'task-ui', title: 'Create UI prototype', ownerId: 'maya-chen', status: 'Todo' }, { id: 'task-pitch', title: 'Prepare pitch', ownerId: '', status: 'Todo' }]
 const matchesSkill = (skill, skills) => skills.some((item) => item.toLowerCase().includes(skill.toLowerCase()) || skill.toLowerCase().includes(item.toLowerCase()))
 
-function makeFallbackCircle() {
-  const candidates = getMockMatches(fallbackIntent)
+function makeFallbackCircle(candidates) {
   const find = (id) => candidates.find((person) => person.id === id)
   return { id: 'demo', intent: fallbackIntent, members: [{ id: 'current-user', name: 'You', initials: 'YOU', skills: ['Backend', 'Machine Learning'], availability: 'Tonight', commitment: 'High', collaborationStyle: 'Competitive', interests: ['AI', 'Health-tech', 'Startups'] }, find('alex-rivera'), find('maya-chen')].filter(Boolean), pendingInvitations: [find('jordan-lee')].filter(Boolean), createdAt: new Date().toISOString() }
 }
 
 export default function CircleWorkspace() {
-  const [circle, setCircle] = useState(() => getActiveCircle() || makeFallbackCircle())
+  const mockMatches = useMemo(() => getMockMatches(fallbackIntent), [])
+  const [circle, setCircle] = useState(() => getActiveCircle() || makeFallbackCircle(mockMatches))
   const [tab, setTab] = useState('Overview')
+
+  useEffect(() => {
+    if (getActiveCircle()) return
+    let active = true
+    fetchCandidates()
+      .then((pool) => {
+        const apiIntent = adaptFrontendIntentToApi(fallbackIntent)
+        const apiCandidates = pool.map((c) => adaptCandidateToApi(c, fallbackIntent))
+        return matchPeople(apiIntent, apiCandidates).then((response) => {
+          const adapted = adaptMatchResults(response, pool, fallbackIntent)
+          if (active) setCircle(makeFallbackCircle(adapted))
+        })
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
   const [profile, setProfile] = useState(null)
   const [meeting, setMeeting] = useState(() => getCircleMeeting({ dateTime: '2026-08-29T20:00', location: 'Hackathon venue' }))
   const [agenda, setAgenda] = useState(() => getCircleAgenda(defaultAgenda))

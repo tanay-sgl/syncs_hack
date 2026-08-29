@@ -58,34 +58,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .json({ error: "Query must be between 1 and 2000 characters" });
   }
 
-  let raw = "";
-  try {
-    const { text } = await generateText({
-      model: google("gemini-3.6-flash"),
-      system: INTENT_SYSTEM_PROMPT,
-      prompt: `Extract collaboration intent from this request:\n\n${trimmed}`,
-      maxTokens: 1000,
-    });
+  const maxAttempts = 2;
+  let lastRaw = "";
+  let lastError: any = null;
 
-    raw = text;
-    const cleaned = extractJson(text);
-    const parsed = JSON.parse(cleaned);
-    const result = IntentSchema.safeParse(parsed);
-
-    if (!result.success) {
-      return res.status(502).json({
-        error: "Model returned invalid intent structure",
-        details: result.error.flatten(),
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const { text } = await generateText({
+        model: google("gemini-3.6-flash"),
+        system: INTENT_SYSTEM_PROMPT,
+        prompt: `Extract collaboration intent from this request:\n\n${trimmed}`,
+        maxTokens: 2000,
       });
-    }
 
-    return res.status(200).json({ intent: result.data });
-  } catch (err: any) {
-    if (err instanceof SyntaxError) {
-      return res.status(502).json({ error: "Model did not return valid JSON", raw });
+      lastRaw = text;
+      const cleaned = extractJson(text);
+      const parsed = JSON.parse(cleaned);
+      const result = IntentSchema.safeParse(parsed);
+
+      if (result.success) {
+        return res.status(200).json({ intent: result.data });
+      }
+      lastError = result.error;
+    } catch (err: any) {
+      lastError = err;
     }
-    return res
-      .status(500)
-      .json({ error: err.message ?? "Internal server error" });
   }
+
+  if (lastError instanceof SyntaxError) {
+    return res.status(502).json({ error: "Model did not return valid JSON", raw: lastRaw });
+  }
+  if (lastError?.flatten) {
+    return res.status(502).json({
+      error: "Model returned invalid intent structure",
+      details: lastError.flatten(),
+    });
+  }
+  return res
+    .status(500)
+    .json({ error: lastError?.message ?? "Internal server error" });
 }

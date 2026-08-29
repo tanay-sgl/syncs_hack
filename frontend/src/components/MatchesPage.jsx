@@ -5,7 +5,7 @@ import MatchFilters from './MatchFilters.jsx'
 import PersonCard from './PersonCard.jsx'
 import ProfilePreview from './ProfilePreview.jsx'
 import SavedPeople from './SavedPeople.jsx'
-import { matchPeople } from '../api/client.js'
+import { fetchCandidates, matchPeople } from '../api/client.js'
 import { adaptCandidateToApi, adaptFrontendIntentToApi, adaptMatchResults } from '../api/adapters.js'
 import { mockCandidates } from '../data/mockCandidates.js'
 import { getMockMatches } from '../services/matchServiceMock.js'
@@ -31,13 +31,16 @@ export default function MatchesPage() {
 
   useEffect(() => {
     let active = true
-    const apiIntent = adaptFrontendIntentToApi(intent)
-    const apiCandidates = mockCandidates.map((candidate) => adaptCandidateToApi(candidate, intent))
     const startedAt = Date.now()
-    matchPeople(apiIntent, apiCandidates)
-      .then((response) => {
-        const adapted = adaptMatchResults(response, mockCandidates, intent)
-        if (active) setCandidates(adapted)
+    fetchCandidates()
+      .catch(() => mockCandidates)
+      .then((pool) => {
+        const apiIntent = adaptFrontendIntentToApi(intent)
+        const apiCandidates = pool.map((candidate) => adaptCandidateToApi(candidate, intent))
+        return matchPeople(apiIntent, apiCandidates).then((response) => {
+          const adapted = adaptMatchResults(response, pool, intent)
+          if (active) setCandidates(adapted)
+        })
       })
       .catch(() => {
         if (active) {
