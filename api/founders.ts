@@ -1,5 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import founders from "../data/founders.json" with { type: "json" };
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+const founders = JSON.parse(
+  readFileSync(join(__dirname, "..", "data", "founders.json"), "utf-8")
+);
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {

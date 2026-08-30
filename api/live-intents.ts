@@ -1,5 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import liveIntents from "../data/live-intents.json" with { type: "json" };
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+const liveIntents = JSON.parse(
+  readFileSync(join(__dirname, "..", "data", "live-intents.json"), "utf-8")
+);
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {

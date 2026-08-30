@@ -1,5 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import candidates from "../data/candidates.json" with { type: "json" };
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+const candidates = JSON.parse(
+  readFileSync(join(__dirname, "..", "data", "candidates.json"), "utf-8")
+);
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
