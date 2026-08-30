@@ -1,14 +1,14 @@
 import http from "node:http";
 import { parse } from "node:url";
 
-import healthHandler from "../api/health.js";
-import matchHandler from "../api/match.js";
-import parseIntentHandler from "../api/parse-intent.js";
-import detectClustersHandler from "../api/detect-clusters.js";
-import candidatesHandler from "../api/candidates.js";
-import foundersHandler from "../api/founders.js";
-import organisationsHandler from "../api/organisations.js";
-import liveIntentsHandler from "../api/live-intents.js";
+import healthHandler from "../frontend/api/health.js";
+import matchHandler from "../frontend/api/match.js";
+import parseIntentHandler from "../frontend/api/parse-intent.js";
+import detectClustersHandler from "../frontend/api/detect-clusters.js";
+import candidatesHandler from "../frontend/api/candidates.js";
+import foundersHandler from "../frontend/api/founders.js";
+import organisationsHandler from "../frontend/api/organisations.js";
+import liveIntentsHandler from "../frontend/api/live-intents.js";
 
 const routes: Record<string, (req: any, res: any) => any> = {
   "/api/health": healthHandler,
